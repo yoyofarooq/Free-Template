@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Glasshouse – Glass Effect Store</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg1:#1b1a55;--bg2:#0f766e;--orb1:#ff7a59;--orb2:#7c5cff;--orb3:#2dd4bf;
+  --glass:rgba(255,255,255,.14);--glass-strong:rgba(255,255,255,.22);--edge:rgba(255,255,255,.35);
+  --text:#fff;--muted:rgba(255,255,255,.78);--accent:#ffd36b;--accent-ink:#2a1d00;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg1:#0a0a24;--bg2:#06403b;--glass:rgba(255,255,255,.09);--glass-strong:rgba(255,255,255,.16)}}
+:root[data-theme="dark"]{--bg1:#0a0a24;--bg2:#06403b;--glass:rgba(255,255,255,.09);--glass-strong:rgba(255,255,255,.16)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:"Bricolage Grotesque",system-ui,sans-serif;color:var(--text);
+  background:linear-gradient(135deg,var(--bg1),var(--bg2));background-attachment:fixed;overflow-x:hidden}
+.orb{position:fixed;border-radius:50%;filter:blur(70px);opacity:.75;z-index:0;pointer-events:none}
+.o1{width:340px;height:340px;background:var(--orb1);top:-80px;left:-90px}
+.o2{width:420px;height:420px;background:var(--orb2);top:30%;right:-140px}
+.o3{width:300px;height:300px;background:var(--orb3);bottom:-80px;left:20%}
+.glass{background:var(--glass);border:1px solid var(--edge);border-radius:22px;
+  -webkit-backdrop-filter:blur(22px) saturate(160%);backdrop-filter:blur(22px) saturate(160%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 18px 40px rgba(0,0,0,.22)}
+.wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:14px 16px 60px}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;border-radius:999px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 8px);z-index:5}
+.logo{font-weight:800;font-size:1.2rem;letter-spacing:-.02em}
+nav{display:flex;gap:16px;color:var(--muted);font-size:.95rem}
+nav a{color:inherit;text-decoration:none}
+nav a:hover{color:#fff}
+.cartbtn{border:1px solid var(--edge);background:var(--glass-strong);color:var(--text);font:inherit;font-weight:600;padding:8px 14px;border-radius:999px;cursor:pointer}
+.cartbtn:focus-visible,.add:focus-visible,.chip:focus-visible,.checkout:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.hero{display:grid;gap:22px;grid-template-columns:1.1fr .9fr;align-items:center;margin-top:26px;padding:34px}
+.hero h1{font-size:clamp(2rem,6vw,3.6rem);line-height:1.02;letter-spacing:-.035em;margin:0 0 14px;font-weight:800}
+.hero p{color:var(--muted);max-width:44ch;line-height:1.55;margin:0 0 22px}
+.cta{display:inline-block;background:var(--accent);color:var(--accent-ink);font-weight:800;padding:13px 22px;border-radius:999px;text-decoration:none}
+.stack{position:relative;height:230px}
+.pane{position:absolute;width:62%;height:70%;border-radius:20px;border:1px solid var(--edge);background:var(--glass-strong);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);display:grid;place-items:center;font-size:3rem}
+.p1{left:0;top:0;transform:rotate(-7deg)}
+.p2{right:0;top:18%;transform:rotate(6deg)}
+.p3{left:20%;bottom:0}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin:30px 0 16px}
+.chip{border:1px solid var(--edge);background:var(--glass);color:var(--text);font:inherit;padding:8px 16px;border-radius:999px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:transparent;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}
+.card{padding:14px;display:flex;flex-direction:column;gap:10px}
+.thumb{height:140px;border-radius:16px;display:grid;place-items:center;font-size:3.2rem;border:1px solid var(--edge)}
+.card h3{margin:0;font-size:1.05rem}
+.card small{color:var(--muted)}
+.row{display:flex;align-items:center;justify-content:space-between;margin-top:auto}
+.price{font-weight:800;font-size:1.15rem}
+.add{border:0;background:var(--accent);color:var(--accent-ink);font:inherit;font-weight:700;padding:8px 14px;border-radius:999px;cursor:pointer}
+.drawer{position:fixed;top:0;right:0;height:100%;width:min(380px,92vw);z-index:10;padding:calc(env(safe-area-inset-top,0px) + 18px) 18px calc(env(safe-area-inset-bottom,0px) + 18px);
+  border-radius:22px 0 0 22px;transform:translateX(105%);transition:transform .3s ease;display:flex;flex-direction:column;gap:12px}
+.drawer.open{transform:none}
+.drawer h2{margin:0}
+.items{flex:1;overflow:auto;display:flex;flex-direction:column;gap:10px}
+.item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:14px;background:var(--glass)}
+.item .e{font-size:1.6rem}
+.item div{flex:1}
+.x{background:none;border:0;color:var(--muted);font-size:1.2rem;cursor:pointer}
+.total{display:flex;justify-content:space-between;font-weight:800;font-size:1.2rem}
+.checkout{border:0;background:var(--accent);color:var(--accent-ink);font:inherit;font-weight:800;padding:14px;border-radius:14px;cursor:pointer}
+.empty{color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translate(-50%,30px);opacity:0;padding:10px 18px;border-radius:999px;z-index:12;transition:.25s}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+footer{margin-top:40px;padding:18px 22px;display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between;color:var(--muted);font-size:.9rem}
+.modal{position:fixed;inset:0;z-index:20;background:rgba(0,0,20,.45);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto}
+.modal[hidden]{display:none}
+.f textarea{resize:none;overflow:hidden;min-height:44px}
+.f small:empty{display:none}
+.pinl{max-width:150px}
+.pinl input{width:100%;letter-spacing:.12em}
+.logo{color:inherit;text-decoration:none}
+.page{padding:26px;margin-top:26px}
+.page[hidden]{display:none}
+.page h1{margin:0 0 14px;font-size:clamp(1.6rem,4vw,2.4rem);letter-spacing:-.03em}
+.page h2{font-size:1.1rem;margin:20px 0 6px}
+.page p,.page li{color:var(--muted);line-height:1.6;max-width:68ch}
+.page ul{padding-left:20px;margin:0}
+details{border:1px solid var(--edge);border-radius:14px;padding:12px 14px;margin-bottom:10px;background:var(--glass);max-width:720px}
+summary{cursor:pointer;font-weight:600}
+details p{margin:8px 0 0}
+.flinks{display:flex;gap:6px 16px;flex-wrap:wrap}
+.flinks a{color:inherit;text-decoration:none}
+.flinks a:hover{color:#fff}
+.page .f{max-width:460px;margin-top:14px}
+.tick{display:block;margin:0 auto 6px;transform-origin:center;animation:pop .5s .9s ease}
+.tc{stroke:var(--accent);stroke-width:3;stroke-dasharray:145;stroke-dashoffset:145;animation:draw .6s ease forwards}
+.tp{stroke:var(--accent);stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:40;stroke-dashoffset:40;animation:draw .4s .55s ease forwards}
+.ok h3,.ok .empty{animation:rise .5s .9s both}
+.cf{position:fixed;top:-16px;width:9px;height:14px;border-radius:2px;z-index:30;pointer-events:none;animation:fall var(--d) var(--l) cubic-bezier(.25,.6,.4,1) both}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes pop{50%{transform:scale(1.15)}}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes fall{from{transform:translate(0,0) rotate(0)}to{transform:translate(var(--x),108vh) rotate(var(--r))}}
+@media (prefers-reduced-motion:reduce){.tc,.tp{animation:none;stroke-dashoffset:0}.tick,.ok h3,.ok .empty{animation:none}}
+.sheet{width:min(460px,100%);padding:20px;max-height:100%;overflow:auto;background:rgba(40,36,110,.55)}
+.steps{display:flex;gap:8px;margin:10px 0 14px}
+.steps span{flex:1;text-align:center;font-size:.85rem;padding:6px;border-radius:999px;background:var(--glass);color:var(--muted)}
+.steps span.on{background:var(--accent);color:var(--accent-ink);font-weight:700}
+.f{display:flex;flex-direction:column;gap:10px}
+.f label{display:flex;flex-direction:column;gap:4px;font-size:.88rem;color:var(--muted)}
+.f input,.f textarea{font:inherit;color:var(--text);background:var(--glass);border:1px solid var(--edge);border-radius:12px;padding:10px 12px}
+.f input::placeholder,.f textarea::placeholder{color:rgba(255,255,255,.5)}
+.f input:focus-visible,.f textarea:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pay{display:flex;align-items:center;gap:10px;padding:12px;border-radius:14px;border:1px solid var(--edge);background:var(--glass);cursor:pointer;color:var(--text)}
+.pay input{accent-color:#ffd36b;width:18px;height:18px}
+.sum{display:flex;justify-content:space-between;font-weight:800;margin:4px 0}
+.ok{text-align:center;padding:10px 0}
+.ok .big{font-size:3rem}
+.addr{background:var(--glass);border-radius:14px;padding:10px 12px;color:var(--muted);font-size:.92rem;line-height:1.45;text-align:left}
+.back{background:none;border:0;color:var(--muted);font:inherit;cursor:pointer;padding:8px}
+@media (max-width:720px){.hero{grid-template-columns:1fr;padding:24px}nav{display:none}.stack{height:190px}}
+@media (prefers-reduced-motion:reduce){.drawer,.toast{transition:none}}
+</style>
+</head>
+<body>
+<div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div>
+<div class="wrap">
+  <header class="glass">
+    <a class="logo" href="#shop">Glasshouse</a>
+    <nav><a href="#shop">Shop</a><a href="#about-us">About</a><a href="#faq">FAQ</a><a href="#contact">Contact</a></nav>
+    <button class="cartbtn" id="openCart" aria-label="Open cart">Cart (<span id="count">0</span>)</button>
+  </header>
+
+  <div id="home">
+  <section class="hero glass">
+    <div>
+      <h1>See-through style, solid quality.</h1>
+      <p>Gadgets and lifestyle picks, with free delivery over ₹999 and 7-day returns.</p>
+      <a class="cta" href="#shop">Shop new arrivals</a>
+    </div>
+    <div class="stack" aria-hidden="true">
+      <div class="pane p1">🎧</div><div class="pane p2">⌚</div><div class="pane p3">🎒</div>
+    </div>
+  </section>
+
+  <section id="shop">
+    <div class="bar" id="filters" role="group" aria-label="Filter by category"></div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  </div>
+<div id='pages'>
+<article class='page glass' id='page-about-us' hidden>
+<h1>About Glasshouse</h1>
+<p>Glasshouse started with a simple idea: everyday gadgets and lifestyle products should look good, work well and arrive without fuss. We pick a small range, test it ourselves and ship from our warehouse across India.</p>
+<h2>What we stand for</h2>
+<ul><li>Honest pricing with GST included</li><li>Quality check before every dispatch</li><li>Easy returns and quick support</li></ul>
+</article>
+<article class='page glass' id='page-contact' hidden>
+<h1>Contact us</h1>
+<p>Questions about an order, a product or a return? Write to us and we’ll reply within one working day.</p>
+<p>Email: support@glasshouse.example<br>Phone: +91 98765 43210<br>Hours: Mon–Sat, 10 am to 6 pm</p>
+<form class='f' id='contactForm'>
+<label>Your name<input name='n' required autocomplete='name'></label>
+<label>Email<input name='e' type='email' required autocomplete='email'></label>
+<label>Message<textarea name='m' rows='3' required></textarea></label>
+<button class='checkout' type='submit'>Send message</button>
+</form>
+</article>
+<article class='page glass' id='page-faq' hidden>
+<h1>Frequently asked questions</h1>
+<details><summary>How long does delivery take?</summary><p>Most orders arrive in 3 to 7 working days, depending on your pincode.</p></details>
+<details><summary>Is delivery free?</summary><p>Orders above ₹999 ship free. A small delivery fee may apply on smaller orders.</p></details>
+<details><summary>Which payment methods do you accept?</summary><p>UPI, debit and credit cards, and cash on delivery.</p></details>
+<details><summary>Can I cancel my order?</summary><p>Yes, any time before it ships. Contact us with your order number.</p></details>
+<details><summary>How do I return a product?</summary><p>Request a return within 7 days of delivery. See the Returns &amp; refunds page for the steps.</p></details>
+<details><summary>How do I track my order?</summary><p>We send a tracking link by email and SMS as soon as your order ships.</p></details>
+</article>
+<article class='page glass' id='page-shipping' hidden>
+<h1>Shipping policy</h1>
+<ul><li>We ship across India through trusted courier partners.</li><li>Orders are packed and dispatched within 1 to 2 working days.</li><li>Delivery takes 3 to 7 working days. Remote pincodes may take longer.</li><li>Orders above ₹999 ship free.</li><li>You get a tracking link by email and SMS once your order ships.</li><li>If a delivery fails twice, the order returns to us and we refund it.</li></ul>
+</article>
+<article class='page glass' id='page-returns' hidden>
+<h1>Returns &amp; refunds</h1>
+<h2>Return window</h2>
+<p>You can return most products within 7 days of delivery if they are unused, in original packaging and with all accessories.</p>
+<h2>How to return</h2>
+<ul><li>Contact us with your order number and the reason.</li><li>We arrange a pickup or share a return address.</li><li>We check the product after it reaches us.</li></ul>
+<h2>Refunds</h2>
+<p>Approved refunds go to your original payment method within 5 to 7 working days. For cash on delivery orders, we refund to your bank account or UPI ID.</p>
+<h2>Not returnable</h2>
+<p>Products damaged by misuse, and items marked as non-returnable on the product page.</p>
+</article>
+<article class='page glass' id='page-privacy' hidden>
+<h1>Privacy policy</h1>
+<h2>What we collect</h2>
+<p>Your name, phone number, email and delivery address, plus basic details about your orders.</p>
+<h2>How we use it</h2>
+<p>To process and deliver orders, send order updates, provide support and improve the store. We do not sell your personal data.</p>
+<h2>Payments</h2>
+<p>Payments are handled by secure payment partners. We never store your full card number or CVV.</p>
+<h2>Your choices</h2>
+<p>You can ask us to view, correct or delete your data at any time by writing to support@glasshouse.example.</p>
+</article>
+<article class='page glass' id='page-terms' hidden>
+<h1>Terms &amp; conditions</h1>
+<ul><li>By using this store you agree to these terms.</li><li>Prices are in Indian rupees and include applicable taxes. We may change prices without notice, but not for orders already placed.</li><li>An order is confirmed only after payment succeeds or a cash on delivery order is accepted.</li><li>We may cancel an order if a product is out of stock or a pricing error occurred, and we will refund any payment made.</li><li>Product images are for illustration. Colours may vary slightly.</li><li>Our liability is limited to the value of the product you bought.</li><li>These terms are governed by the laws of India.</li></ul>
+</article>
+</div>
+<footer class="glass" id="foot">
+    <span>Glasshouse – demo store</span>
+    <nav class="flinks" aria-label="Store information"><a href="#about-us">About us</a><a href="#contact">Contact</a><a href="#faq">FAQ</a><a href="#shipping">Shipping</a><a href="#returns">Returns &amp; refunds</a><a href="#privacy">Privacy</a><a href="#terms">Terms</a></nav>
+  </footer>
+</div>
+
+<aside class="drawer glass" id="drawer" aria-label="Your cart">
+  <div class="row"><h2>Your cart</h2><button class="x" id="closeCart" aria-label="Close cart">✕</button></div>
+  <div class="items" id="items"></div>
+  <div class="total"><span>Total</span><span id="total">₹0</span></div>
+  <button class="checkout" id="checkout">Place order</button>
+</aside>
+<div class="modal" id="modal" hidden><div class="sheet glass" role="dialog" aria-modal="true" aria-label="Checkout">
+  <div class="row"><h2 id="mTitle" style="margin:0"></h2><button class="x" id="mClose" aria-label="Close checkout">✕</button></div>
+  <div class="steps" id="steps"></div>
+  <div id="mBody"></div>
+</div></div>
+<div class="toast glass" id="toast" role="status"></div>
+
+<script>
+var products=[
+ {id:1,n:"Aura Wireless Earbuds",c:"Audio",p:2499,e:"🎧",g:"#ff7a59,#ffb36b"},
+ {id:2,n:"Pulse Smartwatch",c:"Wearables",p:3999,e:"⌚",g:"#7c5cff,#b39dff"},
+ {id:3,n:"Prism Backpack",c:"Bags",p:1799,e:"🎒",g:"#2dd4bf,#7ef0dd"},
+ {id:4,n:"Halo Desk Lamp",c:"Home",p:1299,e:"💡",g:"#ffd36b,#ffe9a8"},
+ {id:5,n:"Drift Bluetooth Speaker",c:"Audio",p:2199,e:"🔊",g:"#f472b6,#fbb6d9"},
+ {id:6,n:"Mist Steel Bottle",c:"Home",p:699,e:"🧴",g:"#60a5fa,#a5cbff"},
+ {id:7,n:"Lumen Fitness Band",c:"Wearables",p:1599,e:"📿",g:"#34d399,#8ff0c4"},
+ {id:8,n:"Frost Laptop Sleeve",c:"Bags",p:899,e:"💼",g:"#a78bfa,#d2c5ff"}
+];
+var cats=["All"].concat(products.map(function(x){return x.c}).filter(function(v,i,a){return a.indexOf(v)===i}));
+var cart={},active="All";
+var $=function(i){return document.getElementById(i)};
+function money(n){return "₹"+n.toLocaleString("en-IN")}
+function renderFilters(){
+  $("filters").innerHTML=cats.map(function(c){return '<button class="chip" data-c="'+c+'" aria-pressed="'+(c===active)+'">'+c+'</button>'}).join("");
+}
+function renderGrid(){
+  $("grid").innerHTML=products.filter(function(x){return active==="All"||x.c===active}).map(function(x){
+    return '<article class="card glass"><div class="thumb" style="background:linear-gradient(135deg,'+x.g+')">'+x.e+'</div>'+
+    '<div><h3>'+x.n+'</h3><small>'+x.c+'</small></div>'+
+    '<div class="row"><span class="price">'+money(x.p)+'</span><button class="add" data-id="'+x.id+'">Add to cart</button></div></article>';
+  }).join("");
+}
+function renderCart(){
+  var ids=Object.keys(cart),t=0,n=0;
+  $("items").innerHTML=ids.length?ids.map(function(id){
+    var x=products.filter(function(p){return p.id==id})[0],q=cart[id];t+=x.p*q;n+=q;
+    return '<div class="item"><span class="e">'+x.e+'</span><div><strong>'+x.n+'</strong><br><small>'+q+' × '+money(x.p)+'</small></div><button class="x" data-rm="'+id+'" aria-label="Remove '+x.n+'">✕</button></div>';
+  }).join(""):'<p class="empty">Your cart is empty. Add something from the shop.</p>';
+  $("total").textContent=money(t);$("count").textContent=n;
+}
+function toast(m){var e=$("toast");e.textContent=m;e.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(function(){e.classList.remove("show")},1600)}
+document.addEventListener("click",function(e){
+  var t=e.target;
+  if(t.dataset.c){active=t.dataset.c;renderFilters();renderGrid()}
+  if(t.dataset.id){cart[t.dataset.id]=(cart[t.dataset.id]||0)+1;renderCart();toast("Added to cart")}
+  if(t.dataset.rm){delete cart[t.dataset.rm];renderCart()}
+});
+$("openCart").onclick=function(){$("drawer").classList.add("open")};
+$("closeCart").onclick=function(){$("drawer").classList.remove("open")};
+var ST2={},ST3={},CT3={"110":"New Delhi","121":"Faridabad","122":"Gurugram","160":"Chandigarh","141":"Ludhiana","143":"Amritsar","144":"Jalandhar","208":"Kanpur","211":"Prayagraj","221":"Varanasi","226":"Lucknow","282":"Agra","302":"Jaipur","313":"Udaipur","342":"Jodhpur","360":"Rajkot","380":"Ahmedabad","390":"Vadodara","395":"Surat","400":"Mumbai","411":"Pune","422":"Nashik","440":"Nagpur","452":"Indore","462":"Bhopal","482":"Jabalpur","492":"Raipur","500":"Hyderabad","520":"Vijayawada","530":"Visakhapatnam","560":"Bengaluru","570":"Mysuru","575":"Mangaluru","600":"Chennai","625":"Madurai","641":"Coimbatore","682":"Kochi","695":"Thiruvananthapuram","700":"Kolkata","751":"Bhubaneswar","781":"Guwahati","800":"Patna","831":"Jamshedpur","834":"Ranchi"};
+function rg(a,b,s){for(var i=a;i<=b;i++)ST2[i]=s}
+function ov(l,s){l.forEach(function(k){ST3[k]=s})}
+rg(11,11,"Delhi");rg(12,13,"Haryana");rg(14,16,"Punjab");rg(17,17,"Himachal Pradesh");rg(18,19,"Jammu & Kashmir");rg(20,28,"Uttar Pradesh");rg(30,34,"Rajasthan");rg(36,39,"Gujarat");rg(40,44,"Maharashtra");rg(45,48,"Madhya Pradesh");rg(49,49,"Chhattisgarh");rg(50,50,"Telangana");rg(51,53,"Andhra Pradesh");rg(56,59,"Karnataka");rg(60,64,"Tamil Nadu");rg(67,69,"Kerala");rg(70,74,"West Bengal");rg(75,77,"Odisha");rg(78,78,"Assam");rg(80,85,"Bihar");
+ov([160],"Chandigarh");ov([403],"Goa");ov([246,248,249,262,263],"Uttarakhand");ov([814,815,816,825,826,827,828,829,831,832,833,834,835],"Jharkhand");ov([737],"Sikkim");ov([744],"Andaman & Nicobar Islands");ov([790,791,792],"Arunachal Pradesh");ov([793,794],"Meghalaya");ov([795],"Manipur");ov([796],"Mizoram");ov([797,798],"Nagaland");ov([799],"Tripura");
+function lookupPin(p){var a=p.slice(0,3),s=ST3[a]||ST2[+p.slice(0,2)];return {state:s||"",city:s?(CT3[a]||""):""}}
+var addr={},step=1,payMode="upi",orderId="",paidTotal=0,paidWith="";
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function cartTotal(){var t=0;Object.keys(cart).forEach(function(id){t+=products.filter(function(p){return p.id==id})[0].p*cart[id]});return t}
+function val(k){return esc(addr[k]||"")}
+function renderStep(){
+  var names=["Address","Payment","Done"];
+  $("steps").innerHTML=names.map(function(n,i){return '<span class="'+(step===i+1?'on':'')+'">'+n+'</span>'}).join("");
+  var b=$("mBody");
+  if(step===1){
+    $("mTitle").textContent="Delivery address";
+    b.innerHTML='<form class="f" id="addrForm">'+
+    '<label>Full name<input name="name" required autocomplete="shipping name" value="'+val("name")+'"></label>'+
+    '<label>Mobile number<input name="phone" required inputmode="numeric" pattern="[0-9]{10}" title="10 digit mobile number" autocomplete="shipping tel-national" value="'+val("phone")+'"></label>'+
+    '<label>Address<textarea name="line" rows="2" required autocomplete="shipping street-address" placeholder="House no., street, area">'+val("line")+'</textarea></label>'+
+    '<label class="pinl">Pincode<input name="pin" required inputmode="numeric" maxlength="6" pattern="[0-9]{6}" title="6 digit pincode" autocomplete="shipping postal-code" value="'+val("pin")+'"></label>'+
+    '<small id="pinHint" class="empty"></small>'+
+    '<div class="two"><label>City<input name="city" required autocomplete="shipping address-level2" value="'+val("city")+'"></label>'+
+    '<label>State<input name="state" required autocomplete="shipping address-level1" value="'+val("state")+'"></label></div>'+
+    '<button class="checkout" type="submit">Continue to payment</button></form>';
+    var fm=$("addrForm").elements,pi=fm.pin;
+    var ta=fm.line,grow=function(){ta.style.height="auto";ta.style.height=ta.scrollHeight+"px"};
+    ta.addEventListener("input",grow);grow();
+    var ph=fm.phone;
+    ph.addEventListener("input",function(){var v=ph.value.replace(/[^0-9]/g,"");if(v.length>10){v=(v.length===12&&v.slice(0,2)==="91")?v.slice(2):v.slice(0,10)}if(v!==ph.value)ph.value=v});
+    fm.city.addEventListener("input",function(){fm.city.dataset.auto=""});
+    pi.addEventListener("input",function(){
+      var p=pi.value.replace(/[^0-9]/g,"").slice(0,6);pi.value=p;var h=$("pinHint");
+      if(p.length<6){h.textContent="";return}
+      var r=lookupPin(p);
+      if(r.state){fm.state.value=r.state;if(r.city){fm.city.value=r.city;fm.city.dataset.auto="1"}else if(fm.city.dataset.auto==="1"){fm.city.value="";fm.city.dataset.auto=""}h.textContent=""}
+      else{h.textContent="Pincode not recognised. Please enter city and state."}
+    });
+    $("addrForm").onsubmit=function(e){e.preventDefault();var d=new FormData(e.target);d.forEach(function(v,k){addr[k]=String(v).trim()});step=2;renderStep()};
+  }else if(step===2){
+    $("mTitle").textContent="Payment";
+    var opts=[["upi","UPI"],["card","Debit / Credit card"],["cod","Cash on delivery"]];
+    b.innerHTML='<form class="f" id="payForm"><div class="sum"><span>Amount to pay</span><span>'+money(cartTotal())+'</span></div>'+
+    opts.map(function(o){return '<label class="pay"><input type="radio" name="pay" value="'+o[0]+'"'+(payMode===o[0]?' checked':'')+'> '+o[1]+'</label>'}).join("")+
+    '<div class="f" id="payFields"></div>'+
+    '<button class="checkout" type="submit">Pay now</button><button class="back" type="button" id="backBtn">Back to address</button></form>';
+    var pf=function(){
+      var h="";
+      if(payMode==="upi")h='<label>UPI ID<input name="upi" required placeholder="name@bank" pattern="[A-Za-z0-9._-]+@[A-Za-z]+" title="Example: name@upi"></label>';
+      if(payMode==="card")h='<label>Card number<input name="cn" required inputmode="numeric" pattern="[0-9 ]{16,19}" title="16 digit card number" autocomplete="cc-number"></label><div class="two"><label>Expiry<input name="ex" required placeholder="MM/YY" pattern="(0[1-9]|1[0-2])/[0-9]{2}" title="MM/YY"></label><label>CVV<input name="cv" required type="password" inputmode="numeric" pattern="[0-9]{3,4}" title="3 or 4 digits"></label></div>';
+      if(payMode==="cod")h='<p class="empty">Pay in cash when your order arrives.</p>';
+      $("payFields").innerHTML=h;
+    };
+    pf();
+    b.querySelectorAll('input[name="pay"]').forEach(function(r){r.onchange=function(){payMode=r.value;pf()}});
+    $("backBtn").onclick=function(){step=1;renderStep()};
+    $("payForm").onsubmit=function(e){
+      e.preventDefault();
+      paidTotal=cartTotal();paidWith={upi:"UPI",card:"Card",cod:"Cash on delivery"}[payMode];
+      orderId="GH"+Math.floor(100000+Math.random()*900000);
+      cart={};renderCart();step=3;renderStep();
+    };
+  }else{
+    $("mTitle").textContent="Order placed";
+    b.innerHTML='<div class="ok"><svg class="tick" viewBox="0 0 52 52" width="88" height="88" aria-hidden="true"><circle class="tc" cx="26" cy="26" r="23" fill="none"/><path class="tp" fill="none" d="M15 27l8 8 15-17"/></svg><h3 style="margin:6px 0">Thank you, '+esc(addr.name)+'!</h3><p class="empty">Order '+orderId+' · '+money(paidTotal)+' · '+paidWith+'</p></div>'+
+    '<div class="addr">Delivering to<br>'+esc(addr.name)+', '+esc(addr.phone)+'<br>'+esc(addr.line)+', '+esc(addr.city)+', '+esc(addr.state)+' – '+esc(addr.pin)+'</div>'+
+    '<div class="f" style="margin-top:14px"><button class="checkout" id="doneBtn">Continue shopping</button></div>';
+    $("doneBtn").onclick=closeModal;burst();
+  }
+}
+function closeModal(){$("modal").hidden=true}
+function burst(){
+  if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  var cols=["#ffd36b","#ff7a59","#2dd4bf","#7c5cff","#f472b6","#ffffff"],box=document.createElement("div");
+  for(var i=0;i<90;i++){var p=document.createElement("i");p.className="cf";p.style.left=(Math.random()*100)+"vw";p.style.background=cols[i%cols.length];
+    p.style.setProperty("--x",((Math.random()-.5)*240)+"px");p.style.setProperty("--r",((Math.random()*900)-450)+"deg");
+    p.style.setProperty("--d",(2.2+Math.random()*1.8)+"s");p.style.setProperty("--l",(Math.random()*.6)+"s");box.appendChild(p)}
+  document.body.appendChild(box);setTimeout(function(){box.remove()},4800);
+}
+$("mClose").onclick=closeModal;
+document.addEventListener("keydown",function(e){if(e.key==="Escape")closeModal()});
+$("checkout").onclick=function(){
+  if(!Object.keys(cart).length){toast("Add an item first");return}
+  $("drawer").classList.remove("open");step=1;$("modal").hidden=false;renderStep();
+};
+function route(){
+  var h=location.hash.slice(1),pg=document.getElementById("page-"+h);
+  document.querySelectorAll(".page").forEach(function(p){p.hidden=(p!==pg)});
+  $("home").hidden=!!pg;
+  $("drawer").classList.remove("open");
+  if(pg){window.scrollTo(0,0)}else if(h==="shop"){$("shop").scrollIntoView()}
+}
+window.addEventListener("hashchange",route);
+$("contactForm").onsubmit=function(e){e.preventDefault();e.target.reset();toast("Message sent. We’ll reply within one working day.")};
+renderFilters();renderGrid();renderCart();route();
+</script>
+</body>
+</html>
